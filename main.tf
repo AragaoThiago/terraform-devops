@@ -8,7 +8,7 @@ provider "aws" {
   region  = "us-east-1"
 }
 
-# --- VPC ---
+# ---- VPC ---
 
 data "aws_availability_zones" "available" { state = "available" }
 
