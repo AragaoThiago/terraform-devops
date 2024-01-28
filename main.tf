@@ -210,6 +210,11 @@ resource "aws_cloudwatch_log_group" "ecs" {
 
 # --- ECS Task Definition ---
 
+variable "docker_image" {
+  description = "Docker image for the ECS task"
+  type        = string
+}
+
 resource "aws_ecs_task_definition" "app" {
   family             = "desafio-app"
   task_role_arn      = "arn:aws:iam::158355329422:role/ecsTaskExecutionRole"
@@ -224,32 +229,26 @@ resource "aws_ecs_task_definition" "app" {
     operating_system_family = "LINUX"
   }
 
-  container_definitions = <<TASK_DEFINITION
-[
-    {
-        "name": "devops",
-        "image": "158355329422.dkr.ecr.us-east-1.amazonaws.com/devops:latest",
-        "cpu": 0,
-        "portMappings": [
-            {
-                "containerPort": 8080,
-                "hostPort": 80,
-                "protocol": "tcp"
-            }
-        ],
-        "essential": true,
-        "logConfiguration": {
-            "logDriver": "awslogs",
-            "options": {
-                "awslogs-create-group": "true",
-                "awslogs-group": "/ecs/desafio-app",
-                "awslogs-region": "us-east-1",
-                "awslogs-stream-prefix": "ecs"
-            }
-        }
+  container_definitions = jsonencode([{
+    name        = "devops",
+    image       = var.docker_image,
+    cpu         = 0,
+    portMappings = [{
+      containerPort = 8080,
+      hostPort      = 80,
+      protocol      = "tcp"
+    }],
+    essential   = true,
+    logConfiguration = {
+      logDriver = "awslogs",
+      options = {
+        "awslogs-create-group" = "true",
+        "awslogs-group"        = "/ecs/desafio-app",
+        "awslogs-region"       = "us-east-1",
+        "awslogs-stream-prefix" = "ecs"
+      }
     }
-]
-TASK_DEFINITION
+  }])
 }
 
 # --- ECS Service ---
